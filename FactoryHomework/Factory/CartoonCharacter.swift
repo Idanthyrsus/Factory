@@ -10,8 +10,6 @@ import UIKit
 
 protocol CartoonCharacter {
     var name: String? { get set }
-    func apply(array: [CartoonCharacter], to anotherArray: inout [CartoonCharacter])
-   // func extractCharacters(from array: [CartoonCharacter], applyTo label: UILabel)
-   
+    static func get(from requestType: CharactersFactoryRequestType, completion: @escaping([CartoonCharacter]) -> Void)
 }
 

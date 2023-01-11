@@ -7,23 +7,26 @@
 
 import Foundation
 
+enum CharactersFactoryRequestType {
+    case coreData
+    case api
+}
+
 protocol CharactersFactory {
-    func getCharacters(characterType: CharacterType) -> CartoonCharacter
+  
+    func getCharacter(characterType: CharacterType, requestType: CharactersFactoryRequestType, completion: @escaping([CartoonCharacter]) -> Void)
 }
 
 class CharacterCreator: CharactersFactory {
-    func getCharacters(characterType: CharacterType) -> CartoonCharacter {
+    
+    func getCharacter(characterType: CharacterType, requestType: CharactersFactoryRequestType, completion: @escaping([CartoonCharacter]) -> Void) {
         
         switch characterType {
         case .rickAndMorty:
-            return RickAndMortyCharacter()
-            
+            return RickAndMortyCharacter.get(from: requestType, completion: completion)
         case .simpsons:
-            return SimpsonsCharacter()
+            return SimpsonsCharacter.get(from: requestType, completion: completion)
         }
-       
     }
-    
-    
 }
 

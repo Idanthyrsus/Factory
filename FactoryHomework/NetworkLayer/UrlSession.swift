@@ -59,9 +59,4 @@ class UrlSessionLayer: NetworkLayer {
             }
         }.resume()
     }
-    
-    
-  
-    
-    
 }

@@ -10,29 +10,17 @@ import UIKit
 class ViewController: UIViewController {
     
     let urlSession: NetworkLayer = UrlSessionLayer()
-    var rickArray: [CartoonCharacter] = []
-    var simpsonsArray: [CartoonCharacter] = []
-    var charactersArray: [CartoonCharacter] = []
-    
-    private let set = [
-        CharacterType.rickAndMorty,
-        CharacterType.simpsons
-    ]
+    var charactersArray: [CartoonCharacter] = [] {
+        didSet {
+            tableView.reloadData()
+        }
+    }
     
     private var character: CartoonCharacter? = nil
     private var index: Int = 0
     private var builder: CharactersFactory = CharacterCreator()
     
-//    private lazy var characterLabel: UILabel = {
-//        let label = UILabel()
-//        label.backgroundColor = .green
-//        label.translatesAutoresizingMaskIntoConstraints = false
-//        return label
-//    }()
-    
-    
-    
-    private lazy var table: UITableView = {
+    private lazy var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .insetGrouped)
         table.delegate = self
         table.dataSource = self
@@ -44,10 +32,12 @@ class ViewController: UIViewController {
         return table
     }()
     
-    private lazy var button: UIButton = {
-        let button = UIButton(frame: CGRect(x: 150, y: 120, width: 50, height: 40))
+    private lazy var confirmButton: UIButton = {
+        let button = UIButton(frame: CGRect(x: 100, y: 100, width: 200, height: 40))
         button.tintColor = .blue
+        button.layer.cornerRadius = 12
         button.backgroundColor = .orange
+        button.setTitle("Replace Characters", for: .normal)
         button.addTarget(self, action: #selector(reload), for: .touchUpInside)
         return button
     }()
@@ -55,81 +45,37 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-       // setLabel()
         setupTableView()
+        view.addSubview(confirmButton)
         
-        view.addSubview(button)
-        
-        displayCharacter()
-        
-        urlSession.getAllRickAndMortyCharacters { [weak self] result in
-            DispatchQueue.main.async {
-                do {
-                    self?.charactersArray = try result.get()
-                    self?.displayCharacter()
-                } catch {
-                    print(error.localizedDescription)
-                }
-                self?.table.reloadData()
-            }
-           
-        }
-        
-        urlSession.getAllSimpsonsCharacters { [weak self] result in
-            DispatchQueue.main.async {
-                do {
-                    self?.charactersArray = try result.get()
-                    self?.displayCharacter()
-                } catch {
-                    print(error.localizedDescription)
-                }
-               // self?.table.reloadData()
-            }
+        builder.getCharacter(characterType: .rickAndMorty, requestType: .api) { [weak self] result in
+            self?.charactersArray = result
         }
     }
     
     @objc func reload() {
-        self.table.reloadData()
+        builder.getCharacter(characterType: .simpsons, requestType: .api) {[weak self] result in
+            self?.charactersArray = result
+        }
     }
-    
-    func displayCharacter() {
-        let currentCharacter = set[index]
-        character = builder.getCharacters(characterType: currentCharacter)
-      //  character?.extractCharacters(from: charactersArray, applyTo: characterLabel)
-        character?.apply(array: charactersArray, to: &rickArray)
-    }
-
     
     private func setupTableView() {
-        self.view.addSubview(table)
+        self.view.addSubview(tableView)
        
         NSLayoutConstraint.activate([
             
-            table.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 36),
-            table.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
-            table.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
-            table.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16)
+            tableView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 36),
+            tableView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16)
         ])
     }
-    
-//    func setLabel() {
-//        view.addSubview(characterLabel)
-//
-//        NSLayoutConstraint.activate([
-//
-//            characterLabel.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 100),
-//            characterLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
-//            characterLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40),
-//            characterLabel.heightAnchor.constraint(equalToConstant: 40)
-//        ])
-//    }
-    
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        rickArray.count
+        charactersArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -139,11 +85,8 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             return cell
         }
         
-        if let characterName = rickArray[indexPath.row].name {
-          //  cell.genusLabel.text = "Genus: \(fruitGenus)"
+        if let characterName = charactersArray[indexPath.row].name {
             cell.nameLabel.text = "Name: \(characterName)"
-          //  cell.caloriesLabel.text = "Calories: \(String(fruitNutritions))"
-           // cell.sugarLabel.text = "Sugar: \(String(fruitSugar))"
         }
         
         return cell
